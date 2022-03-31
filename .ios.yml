@@ -63,7 +63,7 @@
     - export BUILD_NUMBER=$(echo $CI_COMMIT_TAG | rev | cut -d '/' -f1 | rev)
     - fastlane run changelog_from_git_commits tag_match_pattern:build/* | grep -E '^([a-zA-Z]*-.*)' | sed 's/^\([a-zA-Z]*-[0-9]*\).*$/\1/' | sort | uniq |  tr '\n' ',' | sed 's/\(.*\),/\1/' > ${CHANGELOG_FILE} || true
     - cd ./ios-app
-    - pod install --repo-update
+    - pod install --repo-update --allow-root
     - cd ..
     - ./gradlew syncMultiPlatformLibraryReleaseFrameworkIosArm64
     - cd ./ios-app
@@ -103,7 +103,7 @@
     - export BUILD_NUMBER=$(echo $CI_COMMIT_TAG | rev | cut -d '/' -f1 | rev)
     - fastlane run changelog_from_git_commits tag_match_pattern:build/* | grep -E '^([a-zA-Z]*-.*)' | sed 's/^\([a-zA-Z]*-[0-9]*\).*$/\1/' | sort | uniq |  tr '\n' ',' | sed 's/\(.*\),/\1/' > ${CHANGELOG_FILE} || true
     - cd ./ios-app
-    - pod install --repo-update
+    - pod install --repo-update --allow-root
     - cd ..
     - ./gradlew syncMultiPlatformLibraryReleaseXCFramework
     - cd ./ios-app
