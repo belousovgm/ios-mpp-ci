@@ -28,7 +28,7 @@
   script:
     - *do_pre_script
     - cd ./ios-app
-    - pod install --repo-update --allow_root
+    - pod install --repo-update --allow-root
     - cd ..
     - ./gradlew syncMultiPlatformLibraryDebugFrameworkIosArm64
     - cd ./ios-app
