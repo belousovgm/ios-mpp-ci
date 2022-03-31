@@ -1,0 +1,290 @@
+.do_pre_script: &do_pre_script
+  - eval $PRE_SCRIPT
+
+.deploy_firebase_script: &deploy_firebase_script
+  - mkdir fastlane || true
+  - curl ${FASTFILE_URL} --output fastlane/Fastfile
+  - fastlane deploy_firebase
+
+.deploy_appstore_script: &deploy_appstore_script
+  - mkdir fastlane || true
+  - curl ${FASTFILE_URL} --output fastlane/Fastfile
+  - fastlane deploy_appstore
+
+## Check code only for compilation. Following environments should be provided before job 'script' section called
+## 1. match group (team):
+# MATCH_PASSWORD      //gitlab env
+# FASTLANE_USER       //gitlab env
+# FASTLANE_TEAM_ID
+# FASTLANE_PASSWORD   //gitlab env
+# MATCH_GIT_BRANCH
+# MATCH_GIT_URL
+# FASTLANE_DONT_STORE_PASSWORD
+## 2. project group:
+# BUILD_APP_IDENTIFIER
+# BUILD_SCHEME
+## 3. additional commands should be called in 'before_script' section
+.compile_ios_mpp: &compile_ios_mpp
+  script:
+    - *do_pre_script
+    - cd ./ios-app
+    - pod install --repo-update --allow_root
+    - cd ..
+    - ./gradlew syncMultiPlatformLibraryDebugFrameworkIosArm64
+    - cd ./ios-app
+    - mkdir fastlane || true
+    - curl ${FASTFILE_URL} --output fastlane/Fastfile
+    - fastlane compile
+  tags:
+    - gradle
+    - fastlane
+    - osx
+    - xcode
+
+## Following environments should be provided before job 'script' section called
+## 1. match group (team):
+# MATCH_PASSWORD      //gitlab env
+# FASTLANE_USER       //gitlab env
+# FASTLANE_TEAM_ID
+# FASTLANE_PASSWORD   //gitlab env
+# MATCH_GIT_BRANCH
+# MATCH_GIT_URL
+# FASTLANE_DONT_STORE_PASSWORD
+## 2. project group:
+# FIREBASE_TOKEN
+# BUILD_APP_IDENTIFIER
+# BUILD_SCHEME
+# FIREBASE_APP_ID
+## 4. additional commands should be called in 'before_script' section
+.build_ios_mpp: &build_ios_mpp
+  stage: build
+  script:
+    - *do_pre_script
+    - export BUILD_NUMBER=$(echo $CI_COMMIT_TAG | rev | cut -d '/' -f1 | rev)
+    - fastlane run changelog_from_git_commits tag_match_pattern:build/* | grep -E '^([a-zA-Z]*-.*)' | sed 's/^\([a-zA-Z]*-[0-9]*\).*$/\1/' | sort | uniq |  tr '\n' ',' | sed 's/\(.*\),/\1/' > ${CHANGELOG_FILE} || true
+    - cd ./ios-app
+    - pod install --repo-update
+    - cd ..
+    - ./gradlew syncMultiPlatformLibraryReleaseFrameworkIosArm64
+    - cd ./ios-app
+    - mkdir fastlane || true
+    - curl ${FASTFILE_URL} --output fastlane/Fastfile
+    - fastlane build
+  artifacts:
+    paths:
+      - ./ios-app/${XCZIP_NAME}
+      - ${CHANGELOG_FILE}
+    expire_in: 2 days
+  tags:
+    - gradle
+    - fastlane
+    - osx
+    - xcode
+
+## Following environments should be provided before job 'script' section called
+## 1. match group (team):
+# MATCH_PASSWORD      //gitlab env
+# FASTLANE_USER       //gitlab env
+# FASTLANE_TEAM_ID
+# FASTLANE_PASSWORD   //gitlab env
+# MATCH_GIT_BRANCH
+# MATCH_GIT_URL
+# FASTLANE_DONT_STORE_PASSWORD
+## 2. project group:
+# FIREBASE_TOKEN
+# BUILD_APP_IDENTIFIER
+# BUILD_SCHEME
+# FIREBASE_APP_ID
+## 4. additional commands should be called in 'before_script' section
+.build_ios_mpp_xc_framework: &build_ios_mpp_xc_framework
+  stage: build
+  script:
+    - *do_pre_script
+    - export BUILD_NUMBER=$(echo $CI_COMMIT_TAG | rev | cut -d '/' -f1 | rev)
+    - fastlane run changelog_from_git_commits tag_match_pattern:build/* | grep -E '^([a-zA-Z]*-.*)' | sed 's/^\([a-zA-Z]*-[0-9]*\).*$/\1/' | sort | uniq |  tr '\n' ',' | sed 's/\(.*\),/\1/' > ${CHANGELOG_FILE} || true
+    - cd ./ios-app
+    - pod install --repo-update
+    - cd ..
+    - ./gradlew syncMultiPlatformLibraryReleaseXCFramework
+    - cd ./ios-app
+    - mkdir fastlane || true
+    - curl ${FASTFILE_URL} --output fastlane/Fastfile
+    - fastlane build
+  artifacts:
+    paths:
+      - ./ios-app/${XCZIP_NAME}
+      - ${CHANGELOG_FILE}
+    expire_in: 2 days
+  tags:
+    - gradle
+    - fastlane
+    - osx
+    - xcode
+
+## Following environments should be provided before job 'script' section called
+## 1. match group (team):
+# MATCH_PASSWORD      //gitlab env
+# FASTLANE_USER       //gitlab env
+# FASTLANE_TEAM_ID
+# FASTLANE_PASSWORD   //gitlab env
+# MATCH_GIT_BRANCH
+# MATCH_GIT_URL
+# FASTLANE_DONT_STORE_PASSWORD
+## 2. project group:
+# FIREBASE_TOKEN
+# BUILD_APP_IDENTIFIER
+# BUILD_SCHEME
+# FIREBASE_APP_ID
+## 4. additional commands should be called in 'before_script' section
+.build_ios_native: &build_ios_native
+  stage: build
+  script:
+    - *do_pre_script
+    - export BUILD_NUMBER=$(echo $CI_COMMIT_TAG | rev | cut -d '/' -f1 | rev)
+    - fastlane run changelog_from_git_commits tag_match_pattern:build/* | grep -E '^([a-zA-Z]*-.*)' | sed 's/^\([a-zA-Z]*-[0-9]*\).*$/\1/' | sort | uniq |  tr '\n' ',' | sed 's/\(.*\),/\1/' > ${CHANGELOG_FILE} || true
+    - mkdir fastlane || true
+    - curl ${FASTFILE_URL} --output fastlane/Fastfile
+    - fastlane build
+  artifacts:
+    paths:
+      - ${XCZIP_NAME}
+      - ${CHANGELOG_FILE}
+    expire_in: 2 days
+  tags:
+    - fastlane
+    - osx
+    - xcode
+
+## Following environments should be provided before job 'script' section called
+## 1. match group (team):
+# MATCH_PASSWORD      //gitlab env
+# FASTLANE_USER       //gitlab env
+# FASTLANE_TEAM_ID
+# FASTLANE_PASSWORD   //gitlab env
+# MATCH_GIT_BRANCH
+# MATCH_GIT_URL
+# FASTLANE_DONT_STORE_PASSWORD
+## 2. project group:
+# FIREBASE_TOKEN
+# BUILD_APP_IDENTIFIER
+# BUILD_SCHEME
+# FIREBASE_APP_ID
+## 3. build settings:
+# BUILD_EXPORT_METHOD //(ad-hoc/enterprise)
+## 4. additional commands should be called in 'before_script' section
+.deploy_ios_firebase: &deploy_ios_firebase
+  stage: deploy
+  script:
+    - *do_pre_script
+    - *deploy_firebase_script
+  artifacts:
+    paths:
+      - ${IPA_NAME}
+      - ${CHANGELOG_FILE}
+    expire_in: 2 days
+  tags:
+    - fastlane
+    - xcode
+    - osx
+
+## Following environments should be provided before job 'script' section called
+## 1. match group (team):
+# MATCH_PASSWORD      //gitlab env
+# FASTLANE_USER       //gitlab env
+# FASTLANE_TEAM_ID
+# FASTLANE_PASSWORD   //gitlab env
+# MATCH_GIT_BRANCH
+# MATCH_GIT_URL
+# FASTLANE_DONT_STORE_PASSWORD
+## 2. project group:
+# FIREBASE_TOKEN
+# BUILD_APP_IDENTIFIER
+# BUILD_SCHEME
+# FIREBASE_APP_ID
+## 3. build settings:
+# BUILD_EXPORT_METHOD //(ad-hoc/enterprise)
+## 4. additional commands should be called in 'before_script' section
+.deploy_ios_mpp_firebase: &deploy_ios_mpp_firebase
+  stage: deploy
+  script:
+    - *do_pre_script
+    - mv ${CHANGELOG_FILE} ./ios-app/
+    - cd ./ios-app
+    - *deploy_firebase_script
+  artifacts:
+    paths:
+      - ./ios-app/${IPA_NAME}
+      - ${CHANGELOG_FILE}
+    expire_in: 2 days
+  tags:
+    - fastlane
+    - xcode
+    - osx
+
+## Following environments should be provided before job 'script' section called
+## 1. match group (team):
+# MATCH_PASSWORD      //gitlab env
+# FASTLANE_USER       //for team account, gitlab env
+# FASTLANE_TEAM_ID
+# FASTLANE_PASSWORD   //for team account, gitlab env
+# MATCH_GIT_BRANCH
+# MATCH_GIT_URL
+# FASTLANE_DONT_STORE_PASSWORD
+# FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD //for individual accounts, ####-####-####-####, gitlab env
+# FASTLANE_APP_APPLE_ID //for individual accounts, numeric
+## 2. project group:
+# FIREBASE_TOKEN
+# BUILD_APP_IDENTIFIER
+# BUILD_SCHEME
+# FIREBASE_APP_ID
+# FASTLANE_ITC_TEAM_ID
+## 3. additional commands should be called in 'before_script' section
+.deploy_ios_appstore: &deploy_ios_appstore
+  stage: deploy
+  script:
+    - *do_pre_script
+    - *deploy_appstore_script
+  artifacts:
+    paths:
+      - ${IPA_NAME}
+      - ${CHANGELOG_FILE}
+    expire_in: 2 days
+  tags:
+    - fastlane
+    - xcode
+    - osx
+
+## Following environments should be provided before job 'script' section called
+## 1. match group (team):
+# MATCH_PASSWORD      //gitlab env
+# FASTLANE_USER       //for team account, gitlab env
+# FASTLANE_TEAM_ID
+# FASTLANE_PASSWORD   //for team account, gitlab env
+# MATCH_GIT_BRANCH
+# MATCH_GIT_URL
+# FASTLANE_DONT_STORE_PASSWORD
+# FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD //for individual accounts, ####-####-####-####, gitlab env
+# FASTLANE_APP_APPLE_ID //for individual accounts, numeric
+## 2. project group:
+# FIREBASE_TOKEN
+# BUILD_APP_IDENTIFIER
+# BUILD_SCHEME
+# FIREBASE_APP_ID
+# FASTLANE_ITC_TEAM_ID
+## 3. additional commands should be called in 'before_script' section
+.deploy_ios_mpp_appstore: &deploy_ios_mpp_appstore
+  stage: deploy
+  script:
+    - *do_pre_script
+    - mv ${CHANGELOG_FILE} ./ios-app/
+    - cd ./ios-app
+    - *deploy_appstore_script
+  artifacts:
+    paths:
+      - ./ios-app/${IPA_NAME}
+      - ${CHANGELOG_FILE}
+    expire_in: 2 days
+  tags:
+    - fastlane
+    - xcode
+    - osx
