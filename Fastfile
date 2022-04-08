@@ -23,10 +23,10 @@ platform :ios do
 
     # загружаем WWDR сертификаты
     sh("curl -o wwdr_2023.cer 'https://developer.apple.com/certificationauthority/AppleWWDRCA.cer'")
-    sh("security add-certificates -k #{keychain_path} wwdr_2023.cer || true")
+    sh("sudo security add-certificates -k #{keychain_path} wwdr_2023.cer || true")
 
     sh("curl -o wwdr_2030.cer 'https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer'")
-    sh("security add-certificates -k #{keychain_path} wwdr_2030.cer || true")
+    sh("sudo security add-certificates -k #{keychain_path} wwdr_2030.cer || true")
 
     # загружаем данные для подписи
     match(app_identifier: ENV["BUILD_APP_IDENTIFIER"], 
@@ -36,9 +36,9 @@ platform :ios do
       verbose: true
     )
 
-    sh("security set-keychain-settings #{keychain_path}")
-    sh("security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k #{K_PASS} #{keychain_path}")
-    sh("security show-keychain-info #{keychain_path}")
+    sh("sudo security set-keychain-settings #{keychain_path}")
+    sh("sudo security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k #{K_PASS} #{keychain_path}")
+    sh("sudo security show-keychain-info #{keychain_path}")
   end
 
   lane :compile do
