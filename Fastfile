@@ -4,7 +4,7 @@ default_platform :ios
 
 # Constants
 K_PASS = "temp_password"
-K_NAME = "#ENV["BITBUCKET_PIPELINE_UUID"]"
+K_NAME = "#{ENV["BITBUCKET_PIPELINE_UUID"]}"
 
 platform :ios do
   def fill_keychain(type)
