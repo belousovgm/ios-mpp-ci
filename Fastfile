@@ -80,6 +80,12 @@ platform :ios do
     disable_automatic_code_signing
 
     fill_keychain("development")
+    
+    update_project_provisioning(
+       xcodeproj: "ios-app.xcodeproj",
+       target_filter: ENV["BUILD_SCHEME"],
+       build_configuration: "Release"
+     )
 
     # ставим поды
     cocoapods(try_repo_update_on_error: true)
