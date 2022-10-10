@@ -93,6 +93,8 @@ platform :ios do
       xcargs: "OTHER_CODE_SIGN_FLAGS=--keychain=#{lane_context[SharedValues::KEYCHAIN_PATH]}"
     })
     
+    upload_symbols_to_crashlytics(binary_path: "./Pods/FirebaseCrashlytics/upload-symbols", gsp_path: "./GoogleService-Info.plist")
+    
     # вытаскиваем архив
     sh("cd .. && mv '#{lane_context[SharedValues::XCODEBUILD_ARCHIVE]}' #{ENV["XCARCHIVE_NAME"]}")
     # если указано куда - пакуем
@@ -165,7 +167,7 @@ platform :ios do
       --app #{ENV["FIREBASE_APP_ID"]} \
       --groups #{ENV["BUILD_CRASHLYTICS_TEST_GROUPS"]}")
 
-    upload_symbols_to_crashlytics(binary_path: "./Pods/FirebaseCrashlytics/upload-symbols", gsp_path: "./GoogleService-Info.plist")
+    #upload_symbols_to_crashlytics(binary_path: "./Pods/FirebaseCrashlytics/upload-symbols", gsp_path: "./GoogleService-Info.plist")
   end
 
   after_all do |lane, options|
