@@ -164,9 +164,8 @@ platform :ios do
     sh("firebase appdistribution:distribute #{ENV["IPA_OUTPUT_PATH"]}  \
       --app #{ENV["FIREBASE_APP_ID"]} \
       --groups #{ENV["BUILD_CRASHLYTICS_TEST_GROUPS"]}")
-    
-    # Выгрузка пока закомментирована, т.к. FirebaseCrashlytics пока отдаёт ошибку по этой команде, не видит upload-symbols
-    # upload_symbols_to_crashlytics(binary_path: "./Pods/FirebaseCrashlytics/upload-symbols", gsp_path: "./GoogleService-Info.plist")
+
+    upload_symbols_to_crashlytics(binary_path: "./Pods/FirebaseCrashlytics/upload-symbols", gsp_path: "./GoogleService-Info.plist")
   end
 
   after_all do |lane, options|
