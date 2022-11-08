@@ -90,7 +90,8 @@ platform :ios do
       skip_package_ipa: true, 
       clean: true, 
       build_path: 'archive',
-      xcargs: "OTHER_CODE_SIGN_FLAGS=--keychain=#{lane_context[SharedValues::KEYCHAIN_PATH]}"
+      xcargs: "OTHER_CODE_SIGN_FLAGS=--keychain=#{lane_context[SharedValues::KEYCHAIN_PATH]}",
+      disable_xcpretty: true
     })
     
     # вытаскиваем архив
